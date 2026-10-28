@@ -1,0 +1,14 @@
+{
+    "name": "PlcTwin.Editor",
+    "rootNamespace": "PlcTwin.EditorTools",
+    "references": ["PlcTwin.Mc", "PlcTwin.Sim", "PlcTwin.Twin"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

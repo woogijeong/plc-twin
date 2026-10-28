@@ -1,0 +1,10 @@
+Library/
+Temp/
+Logs/
+obj/
+Build/
+tools/out/
+UserSettings/
+*.csproj
+*.sln
+.omc/

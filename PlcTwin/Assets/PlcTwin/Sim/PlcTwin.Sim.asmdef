@@ -1,0 +1,14 @@
+{
+    "name": "PlcTwin.Sim",
+    "rootNamespace": "PlcTwin.Sim",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

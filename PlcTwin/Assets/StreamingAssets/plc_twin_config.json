@@ -1,0 +1,7 @@
+{ "_help":"transport: mc3e (real PLC, MC protocol 3E) or modbus (Modbus TCP server). mc3e/modbus: ip must be a numeric IPv4 address (no hostnames); port 1..65535; pollMs >= 10 (ms between poll cycles); mc3e.monitorTimer250ms >= 1 (PLC monitoring timer in 250 ms units); modbus.unitId 0..255; modbus.writeTableBase / readTableBase = first D number of the server's write and read table (each table is 80 words). connectTimeoutMs > 0 and timeoutMs (per request) are in ms; timeoutMs must be >= mc3e.monitorTimer250ms*250+500. map: DECIMAL D numbers of the first word of each block: inBits (4 words, written to the PLC), inWords (5 words, written), outBits (4 words, read), outWords (7 words, read). Blocks must not overlap; for modbus write blocks lie in the write table, read blocks in the read table. panelVisible: show the control panel at start. The ladder must not write D0-D3/D40-D44. Edits in the app UI (transport, ip, port) are not saved to this file.",
+  "transport":"mc3e",
+  "mc3e":{"ip":"192.168.3.39","port":5010,"monitorTimer250ms":4,"pollMs":100},
+  "modbus":{"ip":"127.0.0.1","port":502,"unitId":1,"pollMs":200,"writeTableBase":0,"readTableBase":100},
+  "connectTimeoutMs":3000,"timeoutMs":1500,
+  "map":{"inBits":"D0","inWords":"D40","outBits":"D100","outWords":"D140"},
+  "panelVisible":true }
