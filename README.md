@@ -7,6 +7,10 @@ Mitsubishi PLC(또는 Modbus TCP 서버)와 연결해 MPS(Modular Production Sys
 - 설비: 공급, 송출, 가공(드릴), 배출 실린더, 컨베이어, 스토퍼, 서보 리프터 + 흡착패드, 창고 실린더
 - 모델: Blender로 만든 3D 모델(`tools\blender\build_mps.py`). 기본 룩은 스타일 A(밝은 산업 장비)
 
+![설비 동작: Metal 칩 투입, 공급 실린더 전진·후진](docs/g2.gif)
+
+![카메라 구도 전환: Default, Front, Iso, Top](docs/g1.gif)
+
 > **안전:** 앱은 처음에 **Disconnected**(오프라인)로 시작합니다. 실제 PLC에는 **Connect를 누르기 전까지** 아무것도 보내지 않습니다.
 > PLC의 Write during RUN이 켜져 있으면 같은 LAN의 누구나 값을 쓸 수 있으니 **실습(랩) 네트워크에서만** 연결하세요.
 > 자세한 절차는 [HARDWARE_CHECKLIST.md](HARDWARE_CHECKLIST.md)를 보세요.
