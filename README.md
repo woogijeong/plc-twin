@@ -3,7 +3,7 @@
 Mitsubishi PLC(또는 Modbus TCP 서버)와 연결해 MPS(Modular Production System) 실습 설비를 Unity 3D로 보여 주는 디지털 트윈입니다.
 앱은 센서 값을 PLC에 쓰고(D0-D3, D40-D44), PLC가 쓴 명령(D100-D103, D140-D146)을 읽어 3D 설비를 움직입니다.
 
-- 통신: MC protocol 3E binary(TCP) 또는 Modbus TCP
+- 통신: MC protocol 3E binary(TCP), Modbus TCP, 또는 MX Component(GX Simulator2, 32비트 도우미 경유)
 - 설비: 공급, 송출, 가공(드릴), 배출 실린더, 컨베이어, 스토퍼, 서보 리프터 + 흡착패드, 창고 실린더
 - 모델: Blender로 만든 3D 모델(`tools\blender\build_mps.py`). 기본 룩은 스타일 A(밝은 산업 장비)
 
@@ -111,12 +111,13 @@ Build\PlcTwin.exe
 
 | 키 | 기본값 | 설명 |
 |---|---|---|
-| `transport` | `mc3e` | `mc3e` 또는 `modbus` |
+| `transport` | `mc3e` | `mc3e`, `modbus` 또는 `mx` |
 | `mc3e.ip` / `port` | `192.168.3.39` / `5010` | 숫자 IPv4만 가능. 포트는 PLC open setting과 같아야 함 |
 | `mc3e.monitorTimer250ms` | `4` | PLC monitoring timer (250 ms 단위, 1 이상) |
 | `mc3e.pollMs` | `100` | 폴링 주기 (10 이상) |
 | `modbus.ip` / `port` / `unitId` | `127.0.0.1` / `502` / `1` | |
 | `modbus.pollMs` | `200` | 폴링 주기 (10 이상, 필수 키) |
+| `mx.logicalStation` / `pollMs` | `1` / `100` | MX Component 논리국번(0-1023)과 폴링 주기. 섹션을 생략하면 이 기본값 |
 | `modbus.writeTableBase` / `readTableBase` | `0` / `100` | 서버의 쓰기 / 읽기 표의 첫 D 번호 (각 80워드) |
 | `connectTimeoutMs`, `timeoutMs` | `3000`, `1500` | `timeoutMs >= monitorTimer250ms*250+500` |
 | `map` | `D0`, `D40`, `D100`, `D140` | `inBits`(4워드), `inWords`(5), `outBits`(4), `outWords`(7) |
@@ -174,6 +175,8 @@ Fake 서버는 프레이밍과 end code, 무응답은 흉내 내지만 PLC 쪽 �
 
 | 파일 | 내용 |
 |---|---|
+| [USAGE.md](USAGE.md) / `USAGE.docx` | 사용 방법 (시뮬레이터 MX / Modbus, 명령 주는 법) |
+| `device_comments.xlsx` | GX Works2 디바이스 코멘트 (2행 x 8열) |
 | [HARDWARE_CHECKLIST.md](HARDWARE_CHECKLIST.md) | 실제 PLC / Modbus 서버와 연결해 확인하는 절차 |
 | [ac3_scenario.md](ac3_scenario.md) | 실제 래더 시나리오 기록표 |
 | `.omc\specs\mps-reference-behavior.md` | 참조 앱 동작 분석 |

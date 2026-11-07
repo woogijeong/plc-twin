@@ -11,23 +11,37 @@ GX Works2 시뮬레이터(또는 PLC)의 래더 동작을 3D로 보면서 시험
 |---|---|
 | `Build\PlcTwin.exe` | 3D 트윈 앱 |
 | GX Works2 + 시뮬레이터 | 래더를 RUN 상태로 실행 |
-| ModbusServer (for Client) | 시뮬레이터와 앱 사이의 Modbus 서버. GX-Works Version은 `GX-Works2` |
+| MX Component | GX Simulator2 연결용(기본 설치 경로 `C:\MELSEC\Act`). 앱이 도우미(`MxHelper.exe`)로 직접 사용 |
+| ModbusServer (for Client) | (선택) Modbus 경로용 서버. GX-Works Version은 `GX-Works2` |
 | `device_comments.xlsx` | GX Works2에 붙여 넣는 디바이스 코멘트 (2행 x 8열, 한글 2칸) |
 
-## 2. 시뮬레이터로 시험하기 (Modbus 경로)
+## 2. 시뮬레이터로 시험하기
 
-MC 3E는 시뮬레이터에 쓸 수 없습니다(이더넷 모듈이 없음). Modbus 경로만 가능합니다.
+### 2.1 MX 방식 (권장, Modbus 서버 불필요)
 
-1. GX Works2에서 접속 대상을 **시뮬레이터**로 두고 시뮬레이션을 시작해 **RUN** 상태로 만듭니다.
+앱이 MX Component로 GX Simulator2에 직접 연결합니다. PlcTwin이 Connect 때 32비트 도우미(`MxHelper.exe`)를 자동으로 띄우므로 별도 서버는 필요 없습니다.
+
+1. GX Works2에서 시뮬레이션을 시작해 **RUN** 상태로 만듭니다.
+2. MX Component의 Communication Setup Utility에서 **논리국번**(기본 1)이 시뮬레이터를 가리키는지 확인합니다. 실제 PLC를 가리키면 Connect 때 실제 PLC에 씁니다.
+3. `Build\PlcTwin.exe`를 실행하고 전송 방식 버튼을 **MX**로 바꿉니다. IP 칸은 비활성이 되고 포트 칸이 논리국번입니다.
+4. 국번을 확인하고 **Connect**를 누릅니다. 상태 줄이 `MX station 1` 연결됨으로 바뀌면 성공입니다.
+
+설정 파일에서 기본값을 바꾸려면 `plc_twin_config.json`에 `"mx":{"logicalStation":1,"pollMs":100}`을 추가합니다(없으면 이 값이 기본). Modbus와 달리 D4-D39를 0으로 덮어쓰지 않고, 폴링도 빠릅니다.
+도우미를 다시 만들려면 `tools\build_mxhelper.ps1`을 실행합니다(MX Component, .NET Framework csc, Windows SDK TlbImp 필요).
+
+### 2.2 Modbus 방식 (ModbusServer 사용)
+
+MC 3E는 시뮬레이터에 쓸 수 없습니다(이더넷 모듈이 없음).
+
+1. GX Works2에서 접속 대상을 시뮬레이터로 두고 시뮬레이션을 **RUN**으로 만듭니다.
 2. ModbusServer를 켜고 **PLC Connect**를 누릅니다. `D0000`, `D0100` 탭에 값이 보이는지 확인합니다.
-3. `Build\PlcTwin.exe`를 실행합니다. 처음에는 `Disconnected`(오프라인)입니다.
-4. 화면 아래에서 방식을 **Modbus**로 고르고 IP `127.0.0.1`, 포트 `502`를 확인한 뒤 **Connect**를 누릅니다. (설정 파일의 `transport`를 `modbus`로 바꿔 두면 기본값이 됩니다.)
-5. 상태 줄이 연결됨으로 바뀌면 GX Works2의 디바이스 테스트나 래더로 명령을 줍니다.
+3. 앱에서 방식을 **Modbus**, IP `127.0.0.1`, 포트 `502`로 두고 **Connect**를 누릅니다.
 
-종료할 때는 앱의 Disconnect, 서버의 PLC Disconnect, 시뮬레이터 정지 순서로 합니다.
-
-시뮬레이터에서 확인된 것 (2026-11-07, 사용자 확인): 실린더 동작과 서보 동작이 시뮬레이터와 연동됩니다.
 Modbus 한 사이클이 약 0.9초라서 반응이 느린 것은 정상입니다.
+
+종료할 때는 앱의 Disconnect, (Modbus라면 서버의 PLC Disconnect), 시뮬레이터 정지 순서로 합니다.
+
+시뮬레이터에서 확인된 것 (2026-11-07, 사용자 확인): Modbus 경로에서 실린더와 서보가, MX 경로에서 전체 동작이 시뮬레이터와 연동됩니다.
 
 ## 3. 화면 조작
 
@@ -92,15 +106,15 @@ D142가 9003이 아니면 Run이 움직이지 않습니다.
 
 | 증상 | 확인할 것 |
 |---|---|
-| 연결이 안 됨 | 서버에서 PLC Connect가 되어 있는지, 포트가 서버와 같은지(기본 502), 상태 줄의 오류 메시지 |
+| 연결이 안 됨 | MX: 국번이 맞는지, 시뮬레이터가 RUN인지, `MxHelper.exe`가 StreamingAssets에 있는지. Modbus: 서버에서 PLC Connect가 되어 있는지, 포트가 서버와 같은지(기본 502), 상태 줄의 오류 메시지 |
 | 값을 써도 반응이 없음 | 서버 `D0100` 탭에 D102, D103, D140-D146 값이 들어오는지, 래더가 같은 디바이스를 덮어쓰는지 |
 | 서보가 움직이지 않음 | D102.0 ON, D102.4 OFF, D142 = 9003, D144가 범위 안인지 |
 | 스토퍼가 반대로 움직임 | D100.7 ON이 상승입니다. 래더 조건을 이 의미에 맞게 확인 |
-| 반응이 느림 | Modbus 사이클이 약 0.9초라서 정상 |
+| 반응이 느림 | Modbus 사이클이 약 0.9초라서 정상 (MX는 빠름) |
 | 상태 줄에 `CONFIG ERROR` | `plc_twin_config.json`의 해당 값 수정 후 재시작 |
 
 ## 7. 주의
 
-- Modbus 모드에서는 쓸 때마다 D0-D44를 한 프레임으로 보내고 **D4-D39를 0으로 씁니다.** 그 영역을 다른 용도로 쓰지 마세요.
+- (Modbus 모드만) 쓸 때마다 D0-D44를 한 프레임으로 보내고 **D4-D39를 0으로 씁니다.** 그 영역을 다른 용도로 쓰지 마세요.
 - 서버 쓰기 표가 PLC로 미러링되는지(OQ-1)는 [HARDWARE_CHECKLIST.md](HARDWARE_CHECKLIST.md) 3.1절 시험으로 확인합니다.
 - 시뮬레이터는 KeepAlive, RUN 중 쓰기 거부, 실제 end code를 흉내 내지 않습니다. 실제 PLC 시험은 체크리스트를 따르세요.
