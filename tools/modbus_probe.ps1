@@ -2,7 +2,7 @@
 # Starts the server, sends the 9 frames, writes tools/out/modbus_probe.txt (verdict block first),
 # stops the server, restarts it (so no probe values remain), stops it again.
 param(
-    [string]$Exe = 'C:\Users\sozx2\바탕 화면\실습 자료\ModbusServerMitsubishi_20220706\ModbusServerMitsubishi_20220706.exe',
+    [Parameter(Mandatory)][string]$Exe, # path to ModbusServerMitsubishi*.exe (third-party, not in this repo)
     [string]$OutFile = (Join-Path $PSScriptRoot 'out\modbus_probe.txt'),
     [int]$TimeoutMs = 2000
 )

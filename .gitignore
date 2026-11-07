@@ -8,3 +8,8 @@ UserSettings/
 *.csproj
 *.sln
 .omc/
+
+# third-party program and local notes: never committed
+ModbusServerMitsubishi_20220706/
+NEXT_SESSION.md
+~$*
