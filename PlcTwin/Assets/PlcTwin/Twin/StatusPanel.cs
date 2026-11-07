@@ -159,12 +159,12 @@ namespace PlcTwin.Twin
                 case PanelLayout.Transport:
                     Fill(r, PanelLayout.IdleButtonColor);
                     GUI.enabled = disconnected;
-                    if (GUI.Button(r, app.Transport == "modbus" ? "Modbus" : "MC 3E", button))
-                        app.SelectTransport(app.Transport == "modbus" ? "mc3e" : "modbus");
+                    if (GUI.Button(r, app.Transport == "modbus" ? "Modbus" : app.Transport == "mx" ? "MX" : "MC 3E", button))
+                        app.SelectTransport(app.Transport == "mc3e" ? "modbus" : app.Transport == "modbus" ? "mx" : "mc3e");
                     GUI.enabled = true;
                     break;
                 case PanelLayout.Ip:
-                    GUI.enabled = disconnected;
+                    GUI.enabled = disconnected && app.Transport != "mx";
                     app.Ip = GUI.TextField(r, app.Ip, 15, field);
                     GUI.enabled = true;
                     break;
@@ -191,7 +191,7 @@ namespace PlcTwin.Twin
             if (app.UiError != null) return "Error: " + app.UiError;
             var p = app.Poller;
             if (p == null) return "State: Disconnected (offline, 3D switches active)";
-            string where = (app.Transport == "modbus" ? "Modbus " : "MC 3E ") + app.Ip + ":" + app.PortText;
+            string where = app.Transport == "mx" ? "MX station " + app.PortText : (app.Transport == "modbus" ? "Modbus " : "MC 3E ") + app.Ip + ":" + app.PortText;
             switch (p.State)
             {
                 case PlcState.Connected: return "State: Connected (" + where + ") rtt " + p.RttMs + " ms";

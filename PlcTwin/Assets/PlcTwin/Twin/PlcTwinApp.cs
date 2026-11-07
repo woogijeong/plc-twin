@@ -96,14 +96,15 @@ namespace PlcTwin.Twin
         {
             Transport = t;
             if (Config == null) return;
-            Ip = t == "modbus" ? Config.modbus.ip : Config.mc3e.ip;
-            PortText = (t == "modbus" ? Config.modbus.port : Config.mc3e.port).ToString();
+            Ip = t == "modbus" ? Config.modbus.ip : t == "mx" ? "(MX)" : Config.mc3e.ip; // mx: Ip unused, "port" = logical station
+            PortText = (t == "modbus" ? Config.modbus.port : t == "mx" ? Config.mx.logicalStation : Config.mc3e.port).ToString();
         }
 
         public void Connect()
         {
             if (Poller != null || Config == null) return;
-            if (!int.TryParse(PortText, out int port) || port < 1 || port > 65535) { UiError = "port '" + PortText + "' must be 1..65535"; return; }
+            int lo = Transport == "mx" ? 0 : 1, hi = Transport == "mx" ? 1023 : 65535;
+            if (!int.TryParse(PortText, out int port) || port < lo || port > hi) { UiError = (Transport == "mx" ? "station '" : "port '") + PortText + "' must be " + lo + ".." + hi; return; }
             UiError = null;
             var (pc, connect) = Config.ToPollerConfig(Transport, Ip.Trim(), port);
             var p = new PlcPoller(pc, connect);

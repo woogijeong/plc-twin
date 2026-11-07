@@ -11,6 +11,8 @@ namespace PlcTwin.Twin
 {
     [Serializable] public class Mc3eCfg { public string ip; public int port, monitorTimer250ms, pollMs; }
     [Serializable] public class ModbusCfg { public string ip; public int port, unitId, pollMs, writeTableBase, readTableBase; }
+    /// <summary>MX Component logical station (e.g. GX Simulator2) reached through StreamingAssets/MxHelper.exe.</summary>
+    [Serializable] public class MxCfg { public int logicalStation, pollMs; }
     [Serializable] public class MapCfg { public string inBits, inWords, outBits, outWords; }
 
     [Serializable]
@@ -23,6 +25,7 @@ namespace PlcTwin.Twin
         public string transport;
         public Mc3eCfg mc3e;
         public ModbusCfg modbus;
+        public MxCfg mx; // optional section: absent = station 1, 100 ms
         public int connectTimeoutMs, timeoutMs;
         public MapCfg map;
         public bool panelVisible;
@@ -43,6 +46,7 @@ namespace PlcTwin.Twin
                 // JsonUtility ignores unknown fields, so the old format is recognized from the text.
                 if (string.IsNullOrEmpty(c.transport) || Regex.IsMatch(json, "\"(conveyor|tower|sensor)\"\\s*:"))
                     return (null, "old config format (conveyor/tower/sensor) is no longer supported; see README.txt");
+                if (c.mx == null || c.mx.pollMs == 0 && c.mx.logicalStation == 0) c.mx = new MxCfg { logicalStation = 1, pollMs = 100 };
                 var err = c.Validate();
                 return err == null ? (c, null) : (null, err);
             }
@@ -50,7 +54,7 @@ namespace PlcTwin.Twin
         }
 
         /// <summary>
-        /// Poller settings plus the transport factory for the chosen transport ("mc3e" or "modbus"). transport, ip and port
+        /// Poller settings plus the transport factory for the chosen transport ("mc3e", "modbus" or "mx"; for mx the port argument is the logical station number and ip is ignored). transport, ip and port
         /// are the UI overrides (nothing is written back to the file); everything else comes from this config.
         /// Reads: outBits, outWords. Writes: inWords (D40) first, then inBits (D0).
         /// </summary>
@@ -59,15 +63,17 @@ namespace PlcTwin.Twin
             int inBits = Dev(map.inBits), inWords = Dev(map.inWords), outBits = Dev(map.outBits), outWords = Dev(map.outWords);
             var cfg = new PlcPollerConfig
             {
-                PollMs = transport == "modbus" ? modbus.pollMs : mc3e.pollMs,
+                PollMs = transport == "modbus" ? modbus.pollMs : transport == "mx" ? mx.pollMs : mc3e.pollMs,
                 RewriteMs = transport == "modbus" ? 1000 : 0, // ponytail: bridge costs ~310 ms/request; resend unchanged blocks about once a second
                 ReadBlocks = new System.Collections.Generic.List<(int d, int count)> { (outBits, OutBitsLen), (outWords, OutWordsLen) },
                 WriteBlocks = new System.Collections.Generic.List<(int d, int count)> { (inWords, InWordsLen), (inBits, InBitsLen) },
             };
-            if (transport != "mc3e" && transport != "modbus") throw new ArgumentException("transport '" + transport + "' must be mc3e or modbus", nameof(transport));
+            if (transport != "mc3e" && transport != "modbus" && transport != "mx") throw new ArgumentException("transport '" + transport + "' must be mc3e, modbus or mx", nameof(transport));
             Func<WaitHandle, IPlcTransport> connect = transport == "modbus"
                 ? stop => ModbusTransport.Connect(ip, port, connectTimeoutMs, timeoutMs, (byte)modbus.unitId, modbus.writeTableBase, modbus.readTableBase, stop)
-                : (Func<WaitHandle, IPlcTransport>)(stop => McTransport.Connect(ip, port, connectTimeoutMs, timeoutMs, mc3e.monitorTimer250ms, stop));
+                : transport == "mx"
+                ? (Func<WaitHandle, IPlcTransport>)(stop => MxTransport.Connect(Path.Combine(Application.streamingAssetsPath, "MxHelper.exe"), "", port, connectTimeoutMs, timeoutMs, stop))
+                : stop => McTransport.Connect(ip, port, connectTimeoutMs, timeoutMs, mc3e.monitorTimer250ms, stop);
             return (cfg, connect);
         }
 
@@ -75,7 +81,7 @@ namespace PlcTwin.Twin
 
         string Validate()
         {
-            if (transport != "mc3e" && transport != "modbus") return "transport '" + transport + "' must be mc3e or modbus";
+            if (transport != "mc3e" && transport != "modbus" && transport != "mx") return "transport '" + transport + "' must be mc3e, modbus or mx";
             if (mc3e == null) return "mc3e section is required";
             if (modbus == null) return "modbus section is required";
             if (map == null) return "map section is required";
@@ -83,6 +89,8 @@ namespace PlcTwin.Twin
             if (err != null) return err;
             if (modbus.unitId < 0 || modbus.unitId > 255) return "modbus.unitId " + modbus.unitId + " must be 0..255";
             if (mc3e.pollMs < 10) return "mc3e.pollMs " + mc3e.pollMs + " must be >= 10";
+            if (mx.logicalStation < 0 || mx.logicalStation > 1023) return "mx.logicalStation " + mx.logicalStation + " must be 0..1023";
+            if (mx.pollMs < 10) return "mx.pollMs " + mx.pollMs + " must be >= 10";
             if (modbus.pollMs < 10) return "modbus.pollMs " + modbus.pollMs + " must be >= 10";
             if (connectTimeoutMs <= 0) return "connectTimeoutMs " + connectTimeoutMs + " must be > 0";
             if (mc3e.monitorTimer250ms < 1) return "mc3e.monitorTimer250ms " + mc3e.monitorTimer250ms + " must be >= 1";
